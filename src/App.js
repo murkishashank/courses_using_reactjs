@@ -48,6 +48,18 @@ function App() {
 			description: "Learn Python",
 			tags: "Python",
 			editMode: false
+		},
+		{
+			title: "Week3",
+			description: "Learn Python",
+			tags: "Python, Classes",
+			editMode: false
+		},
+		{
+			title: "Week4",
+			description: "Learn Python",
+			tags: "Python",
+			editMode: false
 		}
 	];
 	return (
