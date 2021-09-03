@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
+import axios from 'axios';
 
 function SyllabusCard(properties) {
 	const title = properties.syllabusData.title;
@@ -78,6 +79,29 @@ function SyllabusForm(properties) {
 
 function App() {
 	const [syllabusList, setSyllabusList] = useState([]);
+	const [isEditing, setisEditing] = useState(false);
+	useEffect(() => {
+		fetch("http://localhost:3000/api/course", {
+			// mode: 'no-cors',
+			// credentials: 'same-origin',
+			method: "GET",
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': "1d8a43d2-581f-48f1-8b9a-09ddd41eb420"
+			}
+		})
+			.then(response => response.json())
+			.then(result =>{
+				console.log(result);
+				const syllabusListClone = [...syllabusList];
+				syllabusListClone.push(result);
+				setSyllabusList(syllabusListClone);
+				console.log(syllabusList);
+			})
+			.catch(error => {
+				console.log(error);
+			});
+	}, [])
 	const addSyllabus = (event) => {
 		const syllabusListClone = [...syllabusList]
 		syllabusListClone.push({
@@ -95,15 +119,38 @@ function App() {
 	const edit = index => {
 		const syllabusListClone = [...syllabusList]
 		syllabusListClone[index].editMode = true
+		setisEditing(false);
 		setSyllabusList(syllabusListClone);
 	}
-
+	
 	const deleteSyllabus = index => {
 		const syllabusListClone = [...syllabusList]
+		index = 20058;
+		fetch(`http://localhost:3000/api/syllabus/${index}`, {
+			method: "DELETE",
+			headers: {
+				'Authorization': "1d8a43d2-581f-48f1-8b9a-09ddd41eb420"
+			}
+		})
+		.then(response => response.json())
+		.then(result => console.log(result))
+		.catch(console.log)
 		syllabusListClone.splice(index,1);
 		setSyllabusList(syllabusListClone);
 	}
 
+	async function postData (url, data, method) {
+		const response = await fetch(url, {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': "1d8a43d2-581f-48f1-8b9a-09ddd41eb420"
+			},
+			body: JSON.stringify(data)
+		});
+		return response;
+	}
+	
 	const saveData = formData => {
 		formData = JSON.parse(formData);
 		const syllabusListClone = [...syllabusList]
@@ -123,6 +170,18 @@ function App() {
 			if(tags === "") {
 				syllabusListClone[index].tagsError = "Tags are required.";
 			}
+		}else {
+			if(!isEditing) {
+				alert("Editing");
+				postData(`http://localhost:3000/api/syllabus/${index}`, {"title":title,"description":description,"tags":tags})
+				.then(response => console.log(response));
+				setisEditing(true)
+			}
+			else {
+				alert("Not Editing");
+				postData("http://localhost:3000/api/syllabus", {"title":title,"description":description,"tags":tags})
+				.then(response => console.log(response));
+			}
 		}
 		setSyllabusList(syllabusListClone);
 	}
@@ -134,7 +193,7 @@ function App() {
 			syllabusListClone.splice(index, 1);
 		}
 		else{
-			syllabusListClone[index]["editMode"]= false;
+			syllabusItemClone["editMode"]= false;
 		}
 		setSyllabusList(syllabusListClone);
 	}
