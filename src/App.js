@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import axios from 'axios';
 
 function SyllabusCard(properties) {
-	const title = properties.syllabusData.title;
-	const description = properties.syllabusData.description;
+	const title = properties.syllabusData.Title;
+	const description = properties.syllabusData.Description;
 	const index = properties.index + 1;
 	const editSyllabus = () => {
 		properties.onEdit(properties.index);
@@ -34,9 +33,9 @@ function SyllabusCard(properties) {
 }
 
 function SyllabusForm(properties) {
-	const title = properties.syllabusData.title;
-	const description = properties.syllabusData.description;
-	const tags = properties.syllabusData.tags;
+	const title = properties.syllabusData.Title;
+	const description = properties.syllabusData.Description;
+	const tags = properties.syllabusData.Tags;
 	const index = properties.index + 1;
 	const [formData, setFormData] = useState({title:title, description:description, tags:tags, index:properties.index});
 	const handleSubmit = () => {
@@ -82,8 +81,6 @@ function App() {
 	const [isEditing, setisEditing] = useState(false);
 	useEffect(() => {
 		fetch("http://localhost:3000/api/course", {
-			// mode: 'no-cors',
-			// credentials: 'same-origin',
 			method: "GET",
 			headers: {
 				'Content-Type': 'application/json',
@@ -95,7 +92,7 @@ function App() {
 				console.log(result);
 				const syllabusListClone = [...syllabusList];
 				syllabusListClone.push(result);
-				setSyllabusList(syllabusListClone);
+				setSyllabusList(syllabusListClone[0]);
 				console.log(syllabusList);
 			})
 			.catch(error => {
@@ -105,9 +102,9 @@ function App() {
 	const addSyllabus = (event) => {
 		const syllabusListClone = [...syllabusList]
 		syllabusListClone.push({
-			title: "",
-			description: "",
-			tags: "",
+			Title: "",
+			Description: "",
+			Tags: "",
 			editMode: true,
 			titleError: "",
 			descriptionError: "",
@@ -125,23 +122,25 @@ function App() {
 	
 	const deleteSyllabus = index => {
 		const syllabusListClone = [...syllabusList]
-		index = 20058;
-		fetch(`http://localhost:3000/api/syllabus/${index}`, {
+		const id = syllabusList[index].id;
+		fetch(`http://localhost:3000/api/syllabus/${id}`, {
 			method: "DELETE",
 			headers: {
 				'Authorization': "1d8a43d2-581f-48f1-8b9a-09ddd41eb420"
 			}
 		})
 		.then(response => response.json())
-		.then(result => console.log(result))
+		.then(result => {
+			syllabusListClone.splice(index,1);
+			setSyllabusList(syllabusListClone);
+			console.log(result)
+		})
 		.catch(console.log)
-		syllabusListClone.splice(index,1);
-		setSyllabusList(syllabusListClone);
 	}
 
 	async function postData (url, data, method) {
 		const response = await fetch(url, {
-			method: "POST",
+			method: method,
 			headers: {
 				'Content-Type': 'application/json',
 				'Authorization': "1d8a43d2-581f-48f1-8b9a-09ddd41eb420"
@@ -158,7 +157,7 @@ function App() {
 		const description = formData.description;
 		const tags = formData.tags;
 		const index = formData.index;
-		syllabusListClone[index] = {title:title, description:description, tags:tags, editMode: false, titleError:"", descriptionError:"", tagsError:""}
+		syllabusListClone[index] = {Title:title, Description:description, Tags:tags, editMode: false, titleError:"", descriptionError:"", tagsError:""}
 		if(title === "" || description === "" || tags === "") {
 			syllabusListClone[index]["editMode"] = true;
 			if(title === "") {
@@ -172,14 +171,13 @@ function App() {
 			}
 		}else {
 			if(!isEditing) {
-				alert("Editing");
-				postData(`http://localhost:3000/api/syllabus/${index}`, {"title":title,"description":description,"tags":tags})
+				const id = syllabusList[index].id;
+				postData(`http://localhost:3000/api/syllabus/${id}`, {"title":title,"description":description,"tags":tags}, 'PUT')
 				.then(response => console.log(response));
 				setisEditing(true)
 			}
 			else {
-				alert("Not Editing");
-				postData("http://localhost:3000/api/syllabus", {"title":title,"description":description,"tags":tags})
+				postData("http://localhost:3000/api/syllabus", {"title":title,"description":description,"tags":tags}, 'POST')
 				.then(response => console.log(response));
 			}
 		}
