@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router';
+import "@ui5/webcomponents/dist/MultiInput";
+import { Button, MultiInput, Token, Input } from '../node_modules/@ui5/webcomponents-react';
 import './App.css';
+import Loader from "react-js-loader";
+import "@ui5/webcomponents/dist/features/InputElementsFormSupport.js";
 
 function SyllabusCard(properties) {
 	const title = properties.syllabusData.Title;
@@ -21,10 +26,10 @@ function SyllabusCard(properties) {
 				<p className="cardDescription">{description}</p>
 				<ul id="nav" className="actionsNav alignRight">
 					<li className="actionsNav-item">
-						<a id="editbtn"	onClick={editSyllabus} className="actionsNav-link">Edit</a>
+						<Button id="editbtn" onClick={editSyllabus} className="actionsNav-link">Edit</Button>
 					</li>
 					<li className="actionsNav-item">
-						<a onClick={deleteSyllabus} className="actionsNav-link">Delete</a>
+						<Button onClick={deleteSyllabus} className="actionsNav-link">Delete</Button>
 					</li>
 				</ul>
 			</div>
@@ -38,45 +43,89 @@ function SyllabusForm(properties) {
 	const tags = properties.syllabusData.Tags;
 	const index = properties.index + 1;
 	const [formData, setFormData] = useState({title:title, description:description, tags:tags, index:properties.index});
+	
 	const handleSubmit = () => {
 		properties.onClickSave(JSON.stringify(formData));
 	}
+	
 	const  changeHandle = event => {
-		if(event.target.name === "syllabusTitle") formData["title"] = event.target.value;
-		if(event.target.name === "syllabusDescription") formData["description"] = event.target.value;
-		if(event.target.name === "syllabusTags") formData["tags"] = event.target.value;
+		if(event.target.name === "syllabusTitle") {
+			formData["title"] = event.target.value;
+			if(formData["title"] === "") {
+				event.target.valueState = "Error";
+			}
+			console.log(event.target.className);
+		}
+		if(event.target.name === "syllabusDescription") {
+			formData["description"] = event.target.value;
+			if(formData["title"] === "") {
+				event.target.valueState = "Error";
+			}
+		}
+		if(event.target.name === "syllabusTags") {
+			console.log(event.target.tokens)
+			const objective = event.target.value
+			const learingObjectives = [];
+			learingObjectives.push(objective);
+			formData["tags"] = learingObjectives;
+			console.log(learingObjectives)
+		}
 		setFormData(formData);
 	}
+	
 	const cancel = () => {
 		properties.onCancel(properties.index);
 	}
+
+	const tokenDelete = event => {
+		if (!event.target.value) {
+			return;
+		};
+	}
+
 	return (
 		<div id="form" name="formFields">
 				<div className="formIndex">
 					<a className="index" id="index">Syllabus {index}</a>
 				</div>
 				<label htmlFor="syllabusTitle" className="textBoxLabel">Title</label>
-				<input type="text" name="syllabusTitle" id="syllabusTitle" className="textBox" defaultValue={title} onChange={changeHandle}/>
+				<Input type="text" name="syllabusTitle" id="syllabusTitle" className="textBox" value={title} onChange={changeHandle} required/>
 				<p className="errorMessage">{properties.syllabusData.titleError}</p>
 				<label htmlFor="syllabusDescription" className="textBoxLabel">Description</label>
-				<input type="text" name="syllabusDescription" id="syllabusDescription" className="textBox" defaultValue={description} onChange={changeHandle}/>
+				<Input type="text" name="syllabusDescription" id="syllabusDescription" className="textBox" value={description} onChange={changeHandle} required/>
 				<p className="errorMessage">{properties.syllabusData.descriptionError}</p>
 				<label htmlFor="syllabusTags" className="textBoxLabel">Tags</label>
-				<input type="text" name="syllabusTags" id="syllabusTags" className="textBox" defaultValue={tags} onChange={changeHandle}/>
+				{/* <Input type="text" name="syllabusTags" id="syllabusTags" className="textBox" value={tags} onChange={changeHandle} tokens={loToken}/> */}
+				<MultiInput className="textBox" onChange={function noRefCheck(){}} onTokenDelete={function noRefCheck(){}} required slot="" style={{ width: '400px' }} tokens={<><Token text="Argentina" /><Token text="Bulgaria" /><Token text="England" /><Token text="Finland" /><Token text="Germany" /><Token text="Hungary" /><Token text="Italy" /><Token text="Luxembourg" /><Token text="Mexico" /><Token text="Philippines" /><Token text="Sweden" /><Token text="USA" /></>} tooltip="" value={tags}/>
 				<p className="errorMessage">{properties.syllabusData.tagsError}</p>
-				<button id="savebtn" className="alignRight formBtn" type="submit" onClick={handleSubmit}>Save</button>
-				<button className="alignRight formBtn" onClick={cancel}>Cancel</button>
+				<Button id="savebtn" className="alignRight formBtn" type="submit" onClick={handleSubmit}>Save</Button>
+				<Button className="alignRight formBtn" onClick={cancel}>Cancel</Button>
 		</div>
 	);
 }
 
 function SyllabusList() {
 	const [syllabusList, setSyllabusList] = useState([]);
+	const [loading, setLoading] = useState(true)
 	const [isEditing, setisEditing] = useState(false);
+	const [userName, setUserName] = useState('Login');
+	const history = useHistory();
 	
     useEffect(() => {
         const token = window.sessionStorage.getItem('Token')
         console.log(token);
+		fetch("http://localhost:3001/api/getUserName", {
+			method: "GET",
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': token
+			}
+		})
+		.then(response => response.json())
+		.then(result => {
+			setUserName(result[0].UserName)
+			// constusername = result.UserName;
+		});
 		fetch("http://localhost:3001/api/course", {
 			method: "GET",
 			headers: {
@@ -91,6 +140,7 @@ function SyllabusList() {
             syllabusListClone.push(result);
             setSyllabusList(syllabusListClone[0]);
             console.log(syllabusList);
+			setLoading(false);
         })
         .catch(error => {
             console.log(error);
@@ -156,12 +206,12 @@ function SyllabusList() {
 		}else {
 			if(!isEditing) {
 				const id = syllabusList[index].id;
-				postData(`http://localhost:3000/api/syllabus/${id}`, {"title":title,"description":description,"tags":tags}, 'PUT')
+				postData(`http://localhost:3001/api/syllabus/${id}`, {"title":title,"description":description,"tags":tags}, 'PUT')
 				.then(response => console.log(response));
 				setisEditing(true)
 			}
 			else {
-				postData("http://localhost:3000/api/syllabus", {"title":title,"description":description,"tags":tags}, 'POST')
+				postData("http://localhost:3001/api/syllabus", {"title":title,"description":description,"tags":tags}, 'POST')
 				.then(response => console.log(response));
 			}
 		}
@@ -180,15 +230,21 @@ function SyllabusList() {
 		setSyllabusList(syllabusListClone);
 	}
 
+	const logout = () => {
+		window.sessionStorage.clear();
+		history.push('./')
+	}
+
 	return (
 		<>
 			<div className="dropdown alignRight logout-btn">
-				<a className="dropbtn" href="login.php">Login</a>
+				<p className="dropbtn" href="login.php">Hello, {userName}</p>
 				<div className="dropdown-content">
-					<a href="logout.php">Logout</a>
+					<a onClick={logout}>Logout</a>
 				</div>
 			</div>
-			<button className="addSyllabus" id="addSyllabus" onClick={addSyllabus}>Add Syllabus</button>
+			<Button className="addSyllabus" id="addSyllabus" onClick={addSyllabus}>Add Syllabus</Button>
+			{loading ? <Loader type="spinner-circle" bgColor={"#000"} title={"box-rotate-x"} size={100} /> : ''}
 			{syllabusList.map((syllabusItem, index) => {
 				if(syllabusItem.editMode){
 					return <SyllabusForm key={index} index={index} syllabusData={syllabusItem} onClickSave={saveData} onCancel={cancel}></SyllabusForm>

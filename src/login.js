@@ -1,12 +1,12 @@
 import { useState } from "react";
-import SyllabusList from "./syllabusList";
+// import SyllabusList from "./syllabusList";
 import { useHistory } from "react-router-dom";
 // import {Redirect, Route } from "react-router-dom";
 
 function Login() {
 	const history = useHistory();
 	const [loginData, setLoginData] = useState({"email":"", "password":""});
-	const [loginStatus, setLoginStatus] = useState(false);
+	// const [loginStatus, setLoginStatus] = useState(false);
 	
 	const handleSubmit = () => {
 		fetch("http://localhost:3001/api/login/", {
@@ -18,13 +18,13 @@ function Login() {
 		})
 		.then(response => response.json())
 		.then(result => {
-			if(result.error == "Invalid Credentials.") {
+			if(result.error === "Invalid Credentials.") {
 				alert("invalid")	
 			}
 			else {
 				console.log(result);
 				window.sessionStorage.setItem('Token', result.token);
-				setLoginStatus(true);
+				// setLoginStatus(true);
 				history.push('/SyllabusList');
 			}
 		})
