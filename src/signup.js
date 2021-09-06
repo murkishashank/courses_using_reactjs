@@ -1,14 +1,12 @@
 import { useState } from "react";
-// import SyllabusList from "./syllabusList";
 import { useHistory } from "react-router-dom";
-// import {Redirect, Route } from "react-router-dom";
 
-function Login() {
+function SignUp() {
 	const history = useHistory();
-	const [signUpData, setSignUpData] = useState({"username":"","email":"", "password":""});
+	const [signUpData, setSignUpData] = useState({"userName":"","email":"", "password":""});
 	
 	const handleSubmit = () => {
-		fetch("http://localhost:3001/api/login/", {
+		fetch("http://localhost:3001/api/signup/", {
 			method: "POST",
 			headers: {
 				'Content-Type': 'application/json',
@@ -23,14 +21,13 @@ function Login() {
 			else {
 				console.log(result);
 				window.sessionStorage.setItem('Token', result.token);
-				// setLoginStatus(true);
 				history.push('/SyllabusList');
 			}
 		})
 	}
 	
 	const handleChange = event => {
-		if(event.target.name === "username") signUpData["username"] = event.target.value;
+		if(event.target.name === "username") signUpData["userName"] = event.target.value;
 		if(event.target.name === "email") signUpData["email"] = event.target.value;
 		if(event.target.name === "password") signUpData["password"] = event.target.value;
 		setSignUpData(signUpData);
@@ -49,4 +46,4 @@ function Login() {
     );
 }
 
-export default Login
+export default SignUp

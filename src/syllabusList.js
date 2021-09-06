@@ -63,6 +63,7 @@ function SyllabusForm(properties) {
 			}
 		}
 		if(event.target.name === "syllabusTags") {
+			console.log(event.target.tokens)
 			const objective = event.target.value
 			const learingObjectives = [];
 			learingObjectives.push(objective);
@@ -74,12 +75,6 @@ function SyllabusForm(properties) {
 	
 	const cancel = () => {
 		properties.onCancel(properties.index);
-	}
-
-	const tokenDelete = event => {
-		if (!event.target.value) {
-			return;
-		};
 	}
 
 	return (
@@ -94,8 +89,8 @@ function SyllabusForm(properties) {
 				<Input type="text" name="syllabusDescription" id="syllabusDescription" className="textBox" value={description} onChange={changeHandle} required/>
 				<p className="errorMessage">{properties.syllabusData.descriptionError}</p>
 				<label htmlFor="syllabusTags" className="textBoxLabel">Tags</label>
-				{/* <Input type="text" name="syllabusTags" id="syllabusTags" className="textBox" value={tags} onChange={changeHandle} tokens={loToken}/> */}
-				<MultiInput className="textBox" onChange={function noRefCheck(){}} onTokenDelete={function noRefCheck(){}} required slot="" style={{ width: '400px' }} tokens={<><Token text="Argentina" /><Token text="Bulgaria" /><Token text="England" /><Token text="Finland" /><Token text="Germany" /><Token text="Hungary" /><Token text="Italy" /><Token text="Luxembourg" /><Token text="Mexico" /><Token text="Philippines" /><Token text="Sweden" /><Token text="USA" /></>} tooltip="" value={tags}/>
+				{/* <Input type="text" name="syllabusTags" id="syllabusTags" className="textBox" value={tags} onChange={changeHandle}/> */}
+				<MultiInput className="textBox" onChange={changeHandle} onTokenDelete={function noRefCheck(){}} required slot="" style={{ width: '400px' }} tokens={<><Token text="Argentina" /><Token text="Bulgaria" /><Token text="England" /><Token text="Finland" /><Token text="Germany" /><Token text="Hungary" /><Token text="Italy" /><Token text="Luxembourg" /><Token text="Mexico" /><Token text="Philippines" /><Token text="Sweden" /><Token text="USA" /></>} tooltip="" value={tags}/>
 				<p className="errorMessage">{properties.syllabusData.tagsError}</p>
 				<Button id="savebtn" className="alignRight formBtn" type="submit" onClick={handleSubmit}>Save</Button>
 				<Button className="alignRight formBtn" onClick={cancel}>Cancel</Button>
@@ -122,8 +117,7 @@ function SyllabusList() {
 		})
 		.then(response => response.json())
 		.then(result => {
-			setUserName(result[0].UserName)
-			// constusername = result.UserName;
+			setUserName(result.UserName)
 		});
 		fetch("http://localhost:3001/api/course", {
 			method: "GET",
@@ -135,10 +129,13 @@ function SyllabusList() {
 		.then(response => response.json())
 		.then(result =>{
             console.log(result);
-            const syllabusListClone = [...syllabusList];
-            syllabusListClone.push(result);
-            setSyllabusList(syllabusListClone[0]);
-            console.log(syllabusList);
+			result.forEach(item => {
+				item["editMode"] = false;
+				item["titleError"] = "";
+				item["descriptionError"] = "";
+				item["tagsError"] = "";
+			});
+            setSyllabusList(result);
 			setLoading(false);
         })
         .catch(error => {
@@ -205,13 +202,18 @@ function SyllabusList() {
 		}else {
 			if(!isEditing) {
 				const id = syllabusList[index].id;
+				console.log(syllabusList)
 				postData(`http://localhost:3001/api/syllabus/${id}`, {"title":title,"description":description,"tags":tags}, 'PUT')
-				.then(response => console.log(response));
-				setisEditing(true)
+				.then(response => response.json())
+				.then(result => {syllabusListClone[index] = result;})
+				.catch(console.log);
+				setisEditing(true);
 			}
 			else {
 				postData("http://localhost:3001/api/syllabus", {"title":title,"description":description,"tags":tags}, 'POST')
-				.then(response => console.log(response));
+				.then(response => response.json())
+				.then(result => {syllabusListClone[index] = result;})
+				.catch(console.log);
 			}
 		}
 		setSyllabusList(syllabusListClone);
