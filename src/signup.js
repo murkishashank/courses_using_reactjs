@@ -5,8 +5,7 @@ import { useHistory } from "react-router-dom";
 
 function Login() {
 	const history = useHistory();
-	const [loginData, setLoginData] = useState({"email":"", "password":""});
-	// const [loginStatus, setLoginStatus] = useState(false);
+	const [signUpData, setSignUpData] = useState({"username":"","email":"", "password":""});
 	
 	const handleSubmit = () => {
 		fetch("http://localhost:3001/api/login/", {
@@ -14,12 +13,12 @@ function Login() {
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify(loginData)
+			body: JSON.stringify(signUpData)
 		})
 		.then(response => response.json())
 		.then(result => {
-			if(result.error === "Invalid Credentials.") {
-				alert("invalid")	
+			if(result.status === 404) {
+				alert("invalid")
 			}
 			else {
 				console.log(result);
@@ -31,18 +30,20 @@ function Login() {
 	}
 	
 	const handleChange = event => {
-		if(event.target.name === "email") loginData["email"] = event.target.value;
-		if(event.target.name === "password") loginData["password"] = event.target.value;
-		setLoginData(loginData);
+		if(event.target.name === "username") signUpData["username"] = event.target.value;
+		if(event.target.name === "email") signUpData["email"] = event.target.value;
+		if(event.target.name === "password") signUpData["password"] = event.target.value;
+		setSignUpData(signUpData);
 	}
 	return (
 		<div className="login">
+			<label>User Name</label>
+			<input type="text" name="username" placeholder="Enter your name" onChange={handleChange}/><br/>
 			<label>E-Mail ID</label>
 			<input type="email" name="email" placeholder="Enter your email id" onChange={handleChange}/><br/>
 			<label>Password</label>
 			<input type="password" name="password" id="password" placeholder="Enter your password" onChange={handleChange}/>
 			<button type="submit" name="submit" onClick={handleSubmit}>Submit</button>
-			<a href="./signup">Create an account?</a>
 			<p className="errorMessage"></p>
 		</div>
     );

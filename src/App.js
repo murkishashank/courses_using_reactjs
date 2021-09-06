@@ -2,6 +2,7 @@
 import { BrowserRouter as Router, Switch, Route} from "react-router-dom";
 import './App.css';
 // import './login.css'
+import Signup from './signup'
 import SyllabusList from './syllabusList';
 import Login from './login';
 
@@ -14,6 +15,9 @@ function App() {
 				</Route>
 				<Route path="/syllabusList">
 					<SyllabusList />
+				</Route>
+				<Route path="/signup">
+					<Signup />
 				</Route>
 			</Switch>
 		</Router>

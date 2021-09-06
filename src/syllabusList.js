@@ -63,7 +63,6 @@ function SyllabusForm(properties) {
 			}
 		}
 		if(event.target.name === "syllabusTags") {
-			console.log(event.target.tokens)
 			const objective = event.target.value
 			const learingObjectives = [];
 			learingObjectives.push(objective);
