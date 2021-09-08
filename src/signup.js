@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useHistory } from "react-router-dom";
+import './login.css';
 
 function SignUp() {
 	const history = useHistory();
@@ -19,7 +20,6 @@ function SignUp() {
 				alert("invalid")
 			}
 			else {
-				console.log(result);
 				window.sessionStorage.setItem('Token', result.token);
 				history.push('/SyllabusList');
 			}
@@ -34,12 +34,12 @@ function SignUp() {
 	}
 	return (
 		<div className="login">
-			<label>User Name</label>
-			<input type="text" name="username" placeholder="Enter your name" onChange={handleChange}/><br/>
-			<label>E-Mail ID</label>
-			<input type="email" name="email" placeholder="Enter your email id" onChange={handleChange}/><br/>
-			<label>Password</label>
-			<input type="password" name="password" id="password" placeholder="Enter your password" onChange={handleChange}/>
+			<label className="fieldNames">User Name</label>
+			<input type="text" name="username" className="inputBox" placeholder="Enter your name" onChange={handleChange}/><br/>
+			<label className="fieldNames">E-Mail ID</label>
+			<input type="email" name="email" className="inputBox" placeholder="Enter your email id" onChange={handleChange}/><br/>
+			<label className="fieldNames">Password</label>
+			<input type="password" name="password" className="inputBox" id="password" placeholder="Enter your password" onChange={handleChange}/>
 			<button type="submit" name="submit" onClick={handleSubmit}>Submit</button>
 			<p className="errorMessage"></p>
 		</div>

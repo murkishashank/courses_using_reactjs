@@ -1,12 +1,10 @@
 import { useState } from "react";
-// import SyllabusList from "./syllabusList";
 import { useHistory } from "react-router-dom";
-// import {Redirect, Route } from "react-router-dom";
+import './login.css';
 
 function Login() {
 	const history = useHistory();
 	const [loginData, setLoginData] = useState({"email":"", "password":""});
-	// const [loginStatus, setLoginStatus] = useState(false);
 	
 	const handleSubmit = () => {
 		fetch("http://localhost:3001/api/login/", {
@@ -22,9 +20,7 @@ function Login() {
 				alert("invalid")	
 			}
 			else {
-				console.log(result);
 				window.sessionStorage.setItem('Token', result.token);
-				// setLoginStatus(true);
 				history.push('/SyllabusList');
 			}
 		})
@@ -37,12 +33,12 @@ function Login() {
 	}
 	return (
 		<div className="login">
-			<label>E-Mail ID</label>
-			<input type="email" name="email" placeholder="Enter your email id" onChange={handleChange}/><br/>
-			<label>Password</label>
-			<input type="password" name="password" id="password" placeholder="Enter your password" onChange={handleChange}/>
-			<button type="submit" name="submit" onClick={handleSubmit}>Submit</button>
-			<a href="./signup">Create an account?</a>
+			<label className="fieldNames">E-Mail ID</label>
+			<input type="email" name="email" placeholder="Enter your email id" className="inputBox" onChange={handleChange}/><br/>
+			<label className="fieldNames">Password</label>
+			<input type="password" name="password" id="password" placeholder="Enter your password" className="inputBox" onChange={handleChange}/>
+			<button type="submit" name="submit" onClick={handleSubmit}>Submit</button><br/>
+			<a href="./signup">Create an account?</a><br/>
 			<p className="errorMessage"></p>
 		</div>
     );

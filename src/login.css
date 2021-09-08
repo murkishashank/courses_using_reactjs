@@ -15,7 +15,7 @@
     border-radius: 15px ;
 }
 
-input {
+.inputBox {
     width: 300px;
     height: 30px;
     border: none;
@@ -33,13 +33,7 @@ button {
     color: blue; 
 }
 
-h2 {
-    text-align: center;
-    color: #277582;
-    padding: 20px;  
-}
-
-label, p {
+.fieldNames{
     /*color: #08ffd1;  */
     font-size: 17px;  
 }

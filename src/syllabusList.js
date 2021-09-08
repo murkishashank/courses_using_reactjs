@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useHistory } from 'react-router';
 import "@ui5/webcomponents/dist/MultiInput";
-import { Button, MultiInput, Token, Input } from '../node_modules/@ui5/webcomponents-react';
+import { Button, Input, MultiInput, SuggestionItem } from '../node_modules/@ui5/webcomponents-react';
 import './App.css';
 import Loader from "react-js-loader";
 import "@ui5/webcomponents/dist/features/InputElementsFormSupport.js";
+import "@ui5/webcomponents/dist/features/InputSuggestions.js";
 
 function SyllabusCard(properties) {
 	const title = properties.syllabusData.Title;
@@ -40,41 +41,51 @@ function SyllabusCard(properties) {
 function SyllabusForm(properties) {
 	const title = properties.syllabusData.Title;
 	const description = properties.syllabusData.Description;
-	const tags = properties.syllabusData.Tags;
+	var tags = properties.syllabusData.Tags;
 	const index = properties.index + 1;
 	const [formData, setFormData] = useState({title:title, description:description, tags:tags, index:properties.index});
+	const [objectives, setObjectives] = useState([tags]);
+
+	const submitForm = () => properties.onClickSave(JSON.stringify(formData));
 	
-	const handleSubmit = () => {
-		properties.onClickSave(JSON.stringify(formData));
-	}
-	
-	const  changeHandle = event => {
-		if(event.target.name === "syllabusTitle") {
-			formData["title"] = event.target.value;
-			if(formData["title"] === "") {
-				event.target.valueState = "Error";
-			}
-			console.log(event.target.className);
-		}
-		if(event.target.name === "syllabusDescription") {
-			formData["description"] = event.target.value;
+	const  changeHandler = event => {
+		const value = event.target.value;
+		const name = event.target.name;
+		if(name === "syllabusTitle") {
+			formData["title"] = value;
 			if(formData["title"] === "") {
 				event.target.valueState = "Error";
 			}
 		}
-		if(event.target.name === "syllabusTags") {
-			console.log(event.target.tokens)
-			const objective = event.target.value
-			const learingObjectives = [];
-			learingObjectives.push(objective);
-			formData["tags"] = learingObjectives;
-			console.log(learingObjectives)
+		if(name === "syllabusDescription") {
+			formData["description"] = value;
+			if(formData["description"] === "") {
+				event.target.valueState = "Error";
+			}
+		}
+		
+		if(name === "syllabusTags") {
+			const objectivesClone = [...objectives];
+			objectivesClone.push(value);
+			setObjectives(objectivesClone);
+			const token = document.createElement('ui5-token');
+			token.setAttribute("text", value);
+			token.setAttribute("slot", "tokens");
+			token.setAttribute("ui5-token", "");
+			event.target.appendChild(token);
+			event.target.value = "";
+			formData["tags"] = objectives;
 		}
 		setFormData(formData);
 	}
 	
 	const cancel = () => {
 		properties.onCancel(properties.index);
+	}
+	
+	const deleteToken = event => {
+		const oToken = event.detail.token;
+		oToken.parentElement.removeChild(oToken);
 	}
 
 	return (
@@ -83,16 +94,18 @@ function SyllabusForm(properties) {
 					<a className="index" id="index">Syllabus {index}</a>
 				</div>
 				<label htmlFor="syllabusTitle" className="textBoxLabel">Title</label>
-				<Input type="text" name="syllabusTitle" id="syllabusTitle" className="textBox" value={title} onChange={changeHandle} required/>
+				<Input type="text" name="syllabusTitle" id="syllabusTitle" className="textBox" value={title} onChange={changeHandler} required/>
 				<p className="errorMessage">{properties.syllabusData.titleError}</p>
 				<label htmlFor="syllabusDescription" className="textBoxLabel">Description</label>
-				<Input type="text" name="syllabusDescription" id="syllabusDescription" className="textBox" value={description} onChange={changeHandle} required/>
+				<Input type="text" name="syllabusDescription" id="syllabusDescription" className="textBox" value={description} onChange={changeHandler} required/>
 				<p className="errorMessage">{properties.syllabusData.descriptionError}</p>
 				<label htmlFor="syllabusTags" className="textBoxLabel">Tags</label>
-				{/* <Input type="text" name="syllabusTags" id="syllabusTags" className="textBox" value={tags} onChange={changeHandle}/> */}
-				<MultiInput className="textBox" onChange={changeHandle} onTokenDelete={function noRefCheck(){}} required slot="" style={{ width: '400px' }} tokens={<><Token text="Argentina" /><Token text="Bulgaria" /><Token text="England" /><Token text="Finland" /><Token text="Germany" /><Token text="Hungary" /><Token text="Italy" /><Token text="Luxembourg" /><Token text="Mexico" /><Token text="Philippines" /><Token text="Sweden" /><Token text="USA" /></>} tooltip="" value={tags}/>
+				<MultiInput showSuggestions name="syllabusTags" className="textBox" onChange={changeHandler} onInput={function noRefCheck(){}} onTokenDelete={deleteToken} required slot="" style={{ width: '400px' }}  tooltip="" value={tags}>
+					<SuggestionItem text="C" />
+					<SuggestionItem text="ReactJS" />
+				</MultiInput>
 				<p className="errorMessage">{properties.syllabusData.tagsError}</p>
-				<Button id="savebtn" className="alignRight formBtn" type="submit" onClick={handleSubmit}>Save</Button>
+				<Button id="savebtn" className="alignRight formBtn" type="submit" onClick={submitForm}>Save</Button>
 				<Button className="alignRight formBtn" onClick={cancel}>Cancel</Button>
 		</div>
 	);
@@ -107,45 +120,46 @@ function SyllabusList() {
 	
     useEffect(() => {
         const token = window.sessionStorage.getItem('Token')
-        console.log(token);
-		fetch("http://localhost:3001/api/getUserName", {
-			method: "GET",
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': token
-			}
-		})
-		.then(response => response.json())
-		.then(result => {
-			setUserName(result.UserName)
-		});
-		fetch("http://localhost:3001/api/course", {
-			method: "GET",
-			headers: {
-				'Content-Type': 'application/json',
-				'Authorization': token
-			}
-		})
-		.then(response => response.json())
-		.then(result =>{
-            console.log(result);
-			result.forEach(item => {
-				item["editMode"] = false;
-				item["titleError"] = "";
-				item["descriptionError"] = "";
-				item["tagsError"] = "";
+        if(token === null){
+			history.push('./');
+		}
+		else{
+			fetch("http://localhost:3001/api/getUserName", {
+				method: "GET",
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': token
+				}
+			})
+			.then(response => response.json())
+			.then(result => {
+				setUserName(result.UserName)
 			});
-            setSyllabusList(result);
-			setLoading(false);
-        })
-        .catch(error => {
-            console.log(error);
-        });
+			fetch("http://localhost:3001/api/course", {
+				method: "GET",
+				headers: {
+					'Content-Type': 'application/json',
+					'Authorization': token
+				}
+			})
+			.then(response => response.json())
+			.then(result =>{
+				result.forEach(item => {
+					item["editMode"] = false;
+					item["titleError"] = "";
+					item["descriptionError"] = "";
+					item["tagsError"] = "";
+				});
+				setSyllabusList(result);
+				setLoading(false);
+			})
+			.catch(console.log);
+		}
 	}, [])
 
 	const addSyllabus = (event) => {
 		const syllabusListClone = [...syllabusList]
-		syllabusListClone.push({Title: "", Description: "", Tags: "", editMode: true, titleError: "", descriptionError: "", tagsError: ""})
+		syllabusListClone.push({Title: "", Description: "", Tags: "Java", editMode: true, titleError: "", descriptionError: "", tagsError: ""})
 		setSyllabusList(syllabusListClone);
 	}
 
@@ -202,7 +216,6 @@ function SyllabusList() {
 		}else {
 			if(!isEditing) {
 				const id = syllabusList[index].id;
-				console.log(syllabusList)
 				postData(`http://localhost:3001/api/syllabus/${id}`, {"title":title,"description":description,"tags":tags}, 'PUT')
 				.then(response => response.json())
 				.then(result => {syllabusListClone[index] = result;})
